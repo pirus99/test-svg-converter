@@ -125,6 +125,10 @@ function displayOriginalImage(dataUrl, file) {
         originalWidth = img.naturalWidth;
         originalHeight = img.naturalHeight;
         
+        // Update the original info with resolution
+        const fileSize = (file.size / 1024).toFixed(2);
+        originalInfo.textContent = `${file.name} - ${fileSize} KB - ${originalWidth}×${originalHeight}`;
+        
         // Set default values based on current mode
         if (divisorMode.checked) {
             const divisor = parseFloat(divisorInput.value) || 4;
@@ -136,7 +140,7 @@ function displayOriginalImage(dataUrl, file) {
     originalPreview.appendChild(img);
 
     const fileSize = (file.size / 1024).toFixed(2);
-    originalInfo.textContent = `${file.name} - ${fileSize} KB - ${originalWidth}×${originalHeight}`;
+    originalInfo.textContent = `${file.name} - ${fileSize} KB`;
 }
 
 function setDimensionPlaceholders(width, height) {
@@ -204,7 +208,7 @@ function handleFormatChange() {
 
 // Dimension change handler
 function handleDimensionChange(e) {
-    if (!pixelMode.checked || !maintainAspect.checked || !originalImage) return;
+    if (divisorMode.checked || !maintainAspect.checked || !originalImage) return;
 
     const aspectRatio = originalWidth / originalHeight;
 
