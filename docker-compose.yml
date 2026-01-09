@@ -1,8 +1,11 @@
 services:
   web:
-    build: .
+    build:
+      context: .
+    image: svg-converter:latest
+    container_name: svg-converter
     ports:
-      - "8080:80"
-    volumes:
-      - ./web:/usr/share/nginx/html:ro
+      - "${APP_PORT:-8080}:80"
     restart: unless-stopped
+    environment:
+      - TZ=${TZ:-UTC}

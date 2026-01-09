@@ -18,9 +18,9 @@ A beautiful, modern web-based image converter that runs entirely in your browser
 ### Prerequisites
 
 - Docker
-- Docker Compose
+- Docker Compose (for local deployment) OR Portainer (for Portainer deployment)
 
-### Installation & Usage
+### Option 1: Local Docker Compose Deployment
 
 1. Clone the repository:
    ```bash
@@ -28,22 +28,113 @@ A beautiful, modern web-based image converter that runs entirely in your browser
    cd test-svg-converter
    ```
 
-2. Start the application:
+2. (Optional) Configure environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env to customize APP_PORT and other settings
+   ```
+
+3. Start the application:
    ```bash
    docker-compose up -d
    ```
 
-3. Open your browser and navigate to:
+4. Open your browser and navigate to:
    ```
    http://localhost:8080
    ```
+   (or your configured APP_PORT)
 
-4. Start converting your images!
+5. Start converting your images!
 
 ### Stop the application:
 ```bash
 docker-compose down
 ```
+
+### Option 2: Portainer Deployment (Recommended for Easy Management)
+
+Portainer makes it easy to deploy and manage this application with a web interface.
+
+#### Using Portainer Stacks:
+
+1. Open your Portainer instance
+2. Navigate to **Stacks** → **Add Stack**
+3. Name your stack (e.g., "svg-converter")
+4. Choose **Git Repository** as the build method
+5. Configure:
+   - **Repository URL**: `https://github.com/pirus99/test-svg-converter`
+   - **Repository Reference**: `refs/heads/main` (or your branch)
+   - **Compose Path**: `docker-compose.yml`
+6. Set **Environment Variables** (optional):
+   ```
+   APP_PORT=8080
+   TZ=UTC
+   ```
+7. Click **Deploy the stack**
+8. Access the application at `http://your-server-ip:8080`
+
+#### Using Portainer Web Editor:
+
+If you prefer to paste the configuration directly:
+
+1. **Create New Stack**
+   - Go to **Stacks** → **+ Add stack**
+2. **Configure Stack**
+   - **Name**: `svg-converter`
+   - **Build method**: Select **Web editor**
+3. **Paste Configuration**
+   
+   Copy and paste the docker-compose.yml:
+   ```yaml
+   services:
+     web:
+       build:
+         context: .
+       image: svg-converter:latest
+       container_name: svg-converter
+       ports:
+         - "${APP_PORT:-8080}:80"
+       restart: unless-stopped
+       environment:
+         - TZ=${TZ:-UTC}
+   ```
+
+4. **Add Environment Variables**
+   - `APP_PORT` with default value `8080`
+   - `TZ` with default value `UTC`
+5. **Deploy the stack**
+
+#### Using Pre-built Image (Easiest):
+
+For the simplest deployment without building from source:
+
+1. Pull the image (once built and pushed to a registry):
+   ```yaml
+   services:
+     web:
+       image: your-registry/svg-converter:latest
+       container_name: svg-converter
+       ports:
+         - "${APP_PORT:-8080}:80"
+       restart: unless-stopped
+       environment:
+         - TZ=${TZ:-UTC}
+   ```
+
+#### Environment Variables for Portainer:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APP_PORT` | `8080` | Port on which the application will be accessible |
+| `TZ` | `UTC` | Container timezone |
+
+**Benefits of Portainer Deployment:**
+- ✅ Easy port configuration through web UI
+- ✅ Simple stack deployment from Git
+- ✅ Container management and monitoring
+- ✅ Web-based configuration
+- ✅ One-click updates by redeploying the stack
 
 ## How to Use 📖
 
@@ -76,10 +167,12 @@ The application uses HTML5 Canvas API to perform all conversions client-side:
 
 ```
 test-svg-converter/
-├── docker-compose.yml      # Docker Compose configuration
-├── Dockerfile              # Docker image definition
+├── docker-compose.yml      # Docker Compose configuration with env vars
+├── Dockerfile              # Docker image definition (builds from Git)
 ├── nginx.conf              # Nginx server configuration
-├── web/                    # Web application files
+├── .env.example            # Example environment variables
+├── .gitignore              # Git ignore rules
+├── web/                    # Web application files (pulled from Git during build)
 │   ├── index.html          # Main HTML structure
 │   ├── styles.css          # Dark theme styling
 │   └── script.js           # Conversion logic
@@ -110,15 +203,26 @@ Tested on:
 
 ### Change Port
 
-Edit `docker-compose.yml`:
+**Using Environment Variable (Recommended):**
+```bash
+# Create or edit .env file
+echo "APP_PORT=3000" > .env
+docker-compose up -d
+```
+
+**Or edit `docker-compose.yml` directly:**
 ```yaml
 ports:
-  - "8080:80"  # Change 8080 to your desired port
+  - "3000:80"  # Change 3000 to your desired port
 ```
+
+**In Portainer:**
+Set the `APP_PORT` environment variable in the stack configuration.
 
 ### Theme Customization
 
-Edit `web/styles.css` and modify CSS variables:
+To customize the theme, fork the repository and modify `web/styles.css` CSS variables:
+
 ```css
 :root {
     --bg-primary: #0f0f23;
@@ -126,6 +230,8 @@ Edit `web/styles.css` and modify CSS variables:
     /* ... other variables */
 }
 ```
+
+Then deploy your forked repository using Portainer's Git Repository option.
 
 ## Development 💻
 
