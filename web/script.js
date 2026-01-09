@@ -2,6 +2,8 @@
 let currentFile = null;
 let originalImage = null;
 let convertedBlob = null;
+let originalWidth = 0;
+let originalHeight = 0;
 
 // DOM elements
 const dropZone = document.getElementById('dropZone');
@@ -12,6 +14,13 @@ const convertedPreview = document.getElementById('convertedPreview');
 const originalInfo = document.getElementById('originalInfo');
 const convertedInfo = document.getElementById('convertedInfo');
 const outputFormat = document.getElementById('outputFormat');
+const divisorMode = document.getElementById('divisorMode');
+const pixelMode = document.getElementById('pixelMode');
+const divisorControl = document.getElementById('divisorControl');
+const widthControl = document.getElementById('widthControl');
+const heightControl = document.getElementById('heightControl');
+const aspectRatioControl = document.getElementById('aspectRatioControl');
+const divisorInput = document.getElementById('divisor');
 const widthInput = document.getElementById('width');
 const heightInput = document.getElementById('height');
 const maintainAspect = document.getElementById('maintainAspect');
@@ -29,6 +38,9 @@ dropZone.addEventListener('dragleave', handleDragLeave);
 dropZone.addEventListener('drop', handleDrop);
 fileInput.addEventListener('change', handleFileSelect);
 outputFormat.addEventListener('change', handleFormatChange);
+divisorMode.addEventListener('change', handleModeChange);
+pixelMode.addEventListener('change', handleModeChange);
+divisorInput.addEventListener('input', handleDivisorChange);
 widthInput.addEventListener('input', handleDimensionChange);
 heightInput.addEventListener('input', handleDimensionChange);
 qualityInput.addEventListener('input', () => {
@@ -110,17 +122,72 @@ function displayOriginalImage(dataUrl, file) {
     img.src = dataUrl;
     img.onload = () => {
         originalImage = img;
-        setDimensionPlaceholders(img.naturalWidth, img.naturalHeight);
+        originalWidth = img.naturalWidth;
+        originalHeight = img.naturalHeight;
+        
+        // Set default values based on current mode
+        if (divisorMode.checked) {
+            const divisor = parseFloat(divisorInput.value) || 4;
+            updateDimensionsFromDivisor(divisor);
+        } else {
+            setDimensionPlaceholders(originalWidth, originalHeight);
+        }
     };
     originalPreview.appendChild(img);
 
     const fileSize = (file.size / 1024).toFixed(2);
-    originalInfo.textContent = `${file.name} - ${fileSize} KB`;
+    originalInfo.textContent = `${file.name} - ${fileSize} KB - ${originalWidth}×${originalHeight}`;
 }
 
 function setDimensionPlaceholders(width, height) {
     widthInput.placeholder = width;
     heightInput.placeholder = height;
+}
+
+// Mode change handler
+function handleModeChange() {
+    if (divisorMode.checked) {
+        // Show divisor control, hide pixel controls
+        divisorControl.style.display = 'block';
+        widthControl.style.display = 'none';
+        heightControl.style.display = 'none';
+        aspectRatioControl.style.display = 'none';
+        
+        // Update dimensions based on divisor
+        if (originalImage) {
+            const divisor = parseFloat(divisorInput.value) || 4;
+            updateDimensionsFromDivisor(divisor);
+        }
+    } else {
+        // Show pixel controls, hide divisor control
+        divisorControl.style.display = 'none';
+        widthControl.style.display = 'block';
+        heightControl.style.display = 'block';
+        aspectRatioControl.style.display = 'block';
+        
+        // Set placeholders
+        if (originalImage) {
+            setDimensionPlaceholders(originalWidth, originalHeight);
+        }
+    }
+}
+
+// Divisor change handler
+function handleDivisorChange() {
+    if (!divisorMode.checked || !originalImage) return;
+    
+    const divisor = parseFloat(divisorInput.value);
+    if (divisor && divisor > 0) {
+        updateDimensionsFromDivisor(divisor);
+    }
+}
+
+function updateDimensionsFromDivisor(divisor) {
+    const newWidth = Math.round(originalWidth / divisor);
+    const newHeight = Math.round(originalHeight / divisor);
+    widthInput.value = newWidth;
+    heightInput.value = newHeight;
+    setDimensionPlaceholders(newWidth, newHeight);
 }
 
 // Format change handler
@@ -137,10 +204,8 @@ function handleFormatChange() {
 
 // Dimension change handler
 function handleDimensionChange(e) {
-    if (!maintainAspect.checked || !originalImage) return;
+    if (!pixelMode.checked || !maintainAspect.checked || !originalImage) return;
 
-    const originalWidth = originalImage.naturalWidth;
-    const originalHeight = originalImage.naturalHeight;
     const aspectRatio = originalWidth / originalHeight;
 
     if (e.target.id === 'width' && widthInput.value) {
@@ -164,8 +229,16 @@ async function convertImage() {
 
     try {
         const format = outputFormat.value;
-        const width = parseInt(widthInput.value) || originalImage.naturalWidth;
-        const height = parseInt(heightInput.value) || originalImage.naturalHeight;
+        let width, height;
+        
+        if (divisorMode.checked) {
+            const divisor = parseFloat(divisorInput.value) || 4;
+            width = Math.round(originalWidth / divisor);
+            height = Math.round(originalHeight / divisor);
+        } else {
+            width = parseInt(widthInput.value) || originalWidth;
+            height = parseInt(heightInput.value) || originalHeight;
+        }
 
         if (format === 'svg') {
             await convertToSVG(width, height);
@@ -280,6 +353,8 @@ function reset() {
     currentFile = null;
     originalImage = null;
     convertedBlob = null;
+    originalWidth = 0;
+    originalHeight = 0;
     
     fileInput.value = '';
     originalPreview.innerHTML = '';
@@ -290,6 +365,9 @@ function reset() {
     heightInput.value = '';
     widthInput.placeholder = 'Auto';
     heightInput.placeholder = 'Auto';
+    divisorInput.value = '4';
+    divisorMode.checked = true;
+    handleModeChange();
     
     controlsSection.style.display = 'none';
     downloadBtn.style.display = 'none';
