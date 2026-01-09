@@ -38,6 +38,11 @@ convertBtn.addEventListener('click', convertImage);
 downloadBtn.addEventListener('click', downloadImage);
 resetBtn.addEventListener('click', reset);
 
+// Helper function to check if file is SVG
+function isSVGFile(file) {
+    return file.type === 'image/svg+xml' || file.name.endsWith('.svg');
+}
+
 // Drag and drop handlers
 function handleDragOver(e) {
     e.preventDefault();
@@ -67,9 +72,9 @@ function handleFileSelect(e) {
 
 // File processing
 function processFile(file) {
-    const validTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg'];
+    const validTypes = ['image/svg+xml', 'image/png', 'image/jpeg'];
     
-    if (!validTypes.includes(file.type) && !file.name.endsWith('.svg')) {
+    if (!validTypes.includes(file.type) && !isSVGFile(file)) {
         alert('Please upload a valid image file (SVG, PNG, or JPEG)');
         return;
     }
@@ -83,7 +88,7 @@ function processFile(file) {
         controlsSection.style.display = 'block';
         
         // Set default output format based on input
-        if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+        if (isSVGFile(file)) {
             outputFormat.value = 'png';
         } else {
             outputFormat.value = 'svg';
@@ -101,23 +106,13 @@ function processFile(file) {
 function displayOriginalImage(dataUrl, file) {
     originalPreview.innerHTML = '';
     
-    if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
-        const img = document.createElement('img');
-        img.src = dataUrl;
-        img.onload = () => {
-            originalImage = img;
-            setDimensionPlaceholders(img.naturalWidth, img.naturalHeight);
-        };
-        originalPreview.appendChild(img);
-    } else {
-        const img = document.createElement('img');
-        img.src = dataUrl;
-        img.onload = () => {
-            originalImage = img;
-            setDimensionPlaceholders(img.naturalWidth, img.naturalHeight);
-        };
-        originalPreview.appendChild(img);
-    }
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.onload = () => {
+        originalImage = img;
+        setDimensionPlaceholders(img.naturalWidth, img.naturalHeight);
+    };
+    originalPreview.appendChild(img);
 
     const fileSize = (file.size / 1024).toFixed(2);
     originalInfo.textContent = `${file.name} - ${fileSize} KB`;
@@ -268,13 +263,16 @@ function downloadImage() {
     const filename = `${originalName}_converted.${format}`;
 
     const url = URL.createObjectURL(convertedBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } finally {
+        URL.revokeObjectURL(url);
+    }
 }
 
 // Reset functionality
