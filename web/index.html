@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Converter - Convert Images with Ease</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 SVG Converter</h1>
+            <p class="subtitle">Convert SVG to PNG and vice versa - All in your browser</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="drop-zone" id="dropZone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p class="drop-text">Drag & drop your image here</p>
+                    <p class="drop-subtext">or</p>
+                    <button class="browse-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                    <input type="file" id="fileInput" accept=".svg,.png,.jpg,.jpeg" hidden>
+                    <p class="supported-formats">Supported: SVG, PNG, JPG</p>
+                </div>
+            </div>
+
+            <div class="controls-section" id="controlsSection" style="display: none;">
+                <div class="preview-container">
+                    <div class="preview-box">
+                        <h3>Original</h3>
+                        <div class="preview" id="originalPreview"></div>
+                        <p class="image-info" id="originalInfo"></p>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="preview-box">
+                        <h3>Converted</h3>
+                        <div class="preview" id="convertedPreview"></div>
+                        <p class="image-info" id="convertedInfo"></p>
+                    </div>
+                </div>
+
+                <div class="controls-panel">
+                    <div class="control-group">
+                        <label for="outputFormat">Output Format</label>
+                        <select id="outputFormat">
+                            <option value="png">PNG</option>
+                            <option value="svg">SVG</option>
+                            <option value="jpeg">JPEG</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Dimension Mode</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="dimensionMode" id="divisorMode" checked>
+                                Divide by factor
+                            </label>
+                            <label>
+                                <input type="radio" name="dimensionMode" id="pixelMode">
+                                Exact pixels
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group" id="divisorControl">
+                        <label for="divisor">Divide original by</label>
+                        <input type="number" id="divisor" value="4" min="1" step="0.5">
+                    </div>
+
+                    <div class="control-group" id="widthControl" style="display: none;">
+                        <label for="width">Width (px)</label>
+                        <input type="number" id="width" placeholder="Auto" min="1">
+                    </div>
+
+                    <div class="control-group" id="heightControl" style="display: none;">
+                        <label for="height">Height (px)</label>
+                        <input type="number" id="height" placeholder="Auto" min="1">
+                    </div>
+
+                    <div class="control-group" id="aspectRatioControl" style="display: none;">
+                        <label>
+                            <input type="checkbox" id="maintainAspect" checked>
+                            Maintain aspect ratio
+                        </label>
+                    </div>
+
+                    <div class="control-group quality-group" id="qualityGroup" style="display: none;">
+                        <label for="quality">Quality (1-100)</label>
+                        <input type="range" id="quality" min="1" max="100" value="92">
+                        <span id="qualityValue">92</span>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="convert-btn" id="convertBtn">Convert</button>
+                        <button class="download-btn" id="downloadBtn" style="display: none;">Download</button>
+                        <button class="reset-btn" id="resetBtn">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>All conversions happen in your browser. No data is uploaded to any server.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

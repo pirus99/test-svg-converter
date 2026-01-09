@@ -1,0 +1,11 @@
+services:
+  web:
+    build:
+      context: .
+    image: svg-converter:latest
+    container_name: svg-converter
+    ports:
+      - "${APP_PORT:-8080}:80"
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-UTC}
